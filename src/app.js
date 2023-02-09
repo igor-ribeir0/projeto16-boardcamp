@@ -46,6 +46,21 @@ app.get("/customers", async(req, res) => {
     res.status(200).send(customersList.rows);
 });
 
+app.get("/customers/:id", async(req, res) => {
+    const { id } = req.params;
+
+    try{
+        const findCustomer = await connection.query(`SELECT * FROM customers WHERE id = $1`, [id]);
+
+        if(findCustomer.rows.length === 0) return res.sendStatus(404);
+
+        res.status(200).send(findCustomer.rows[0]);
+    }
+    catch(error){
+        res.status(500).send(error.message);
+    }
+});
+
 app.post("/games", async(req, res) => {
     const { name, image, stockTotal, pricePerDay } = req.body;
     const newGame = { name, image, stockTotal, pricePerDay };
