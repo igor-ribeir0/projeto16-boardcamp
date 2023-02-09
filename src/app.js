@@ -40,6 +40,12 @@ app.get("/games", async(req, res) => {
     }
 });
 
+app.get("/customers", async(req, res) => {
+    const customersList = await connection.query("SELECT * FROM customers");
+
+    res.status(200).send(customersList.rows);
+});
+
 app.post("/games", async(req, res) => {
     const { name, image, stockTotal, pricePerDay } = req.body;
     const newGame = { name, image, stockTotal, pricePerDay };
