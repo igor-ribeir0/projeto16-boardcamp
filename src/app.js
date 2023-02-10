@@ -30,14 +30,14 @@ const newGameSchema = joi.object(
     }
 );
 
-const newCustomerSchema = joi.object(
+const customerSchema = joi.object(
     {
         name: joi.string().required(),
         phone: joi.string().min(10).max(11).required(),
         cpf: joi.string().min(11).max(11).required(), 
-        birthday: joi.date().max('2023-12-31').iso()
+        birthday: joi.date().max('2023-12-31').required()
     }
-)
+);
 
 app.get("/games", async(req, res) => {
     try{
@@ -101,7 +101,7 @@ app.post("/customers", async(req, res) => {
 
     const newCustomer = { name, phone, cpf, birthday };
 
-    const validation = newCustomerSchema.validate(newCustomer, { abortEarly: false });
+    const validation = customerSchema.validate(newCustomer, { abortEarly: false });
 
     if (validation.error) {
         const errors = validation.error.details.map((detail) => detail.message);
@@ -118,6 +118,37 @@ app.post("/customers", async(req, res) => {
         );
 
         res.sendStatus(201);
+    }
+    catch(error){
+        res.status(500).send(error.message);
+    }
+});
+
+app.put("/customers/:id", async(req, res) => {
+    const { id } = req.params;
+    const { name, phone, cpf, birthday } = req.body;
+    const customer = { name, phone, cpf, birthday };
+
+    const validation = customerSchema.validate(customer, { abortEarly: false });
+
+    if (validation.error) {
+        const errors = validation.error.details.map((detail) => detail.message);
+        return res.status(400).send(errors);
+    };
+
+    try{
+        const customerId = await connection.query("SELECT * FROM customers WHERE id = $1", [id]);
+        const customerCpf = await connection.query("SELECT * FROM customers WHERE cpf = $1", [cpf]);
+
+        if(customerId.rows.length === 0 || customerCpf.rows.length === 0){
+            return res.sendStatus(404);
+        };
+
+        await connection.query("UPDATE customers SET name = $1 WHERE id = $2", [name, id]);
+        await connection.query("UPDATE customers SET phone = $1 WHERE id = $2", [phone, id]);
+        await connection.query("UPDATE customers SET birthday = $1 WHERE id = $2", [birthday, id]);
+
+        res.sendStatus(200);
     }
     catch(error){
         res.status(500).send(error.message);
