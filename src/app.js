@@ -25,10 +25,19 @@ const newGameSchema = joi.object(
     {
         name: joi.string().required(),
         image: joi.string().uri().required(),
-        stockTotal: joi.number().integer().min(1).required(),
-        pricePerDay: joi.number().integer().min(1).required()
+        stockTotal: joi.number().positive().greater(0).required(),
+        pricePerDay: joi.number().positive().greater(0).required()
     }
 );
+
+const newCustomerSchema = joi.object(
+    {
+        name: joi.string().required(),
+        phone: joi.string().min(10).max(11).required(),
+        cpf: joi.string().min(11).max(11).required(), 
+        birthday: joi.date().max('2023-12-31').iso()
+    }
+)
 
 app.get("/games", async(req, res) => {
     try{
@@ -84,5 +93,33 @@ app.post("/games", async(req, res) => {
     }
     catch(error){
         return res.status(500).send(error.message);
+    }
+});
+
+app.post("/customers", async(req, res) => {
+    const { name, phone, cpf, birthday } = req.body;
+
+    const newCustomer = { name, phone, cpf, birthday };
+
+    const validation = newCustomerSchema.validate(newCustomer, { abortEarly: false });
+
+    if (validation.error) {
+        const errors = validation.error.details.map((detail) => detail.message);
+        return res.status(400).send(errors);
+    };
+
+    try{
+        const customerCpf = await connection.query(`SELECT * FROM customers WHERE cpf = $1`, [cpf]);
+
+        if(customerCpf.rows.length !== 0) return res.sendStatus(409);
+
+        await connection.query(`INSERT INTO customers (name, phone, cpf, birthday) 
+            VALUES ($1, $2, $3, $4)`, [name, phone, cpf, birthday]
+        );
+
+        res.sendStatus(201);
+    }
+    catch(error){
+        res.status(500).send(error.message);
     }
 });
