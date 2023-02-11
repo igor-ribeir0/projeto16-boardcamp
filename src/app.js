@@ -126,7 +126,7 @@ app.post("/games", async(req, res) => {
 
         await connection.query(`
             INSERT INTO games (name, image, "stockTotal", "pricePerDay") 
-            VALUES ('$1', '$2', '$3', '$4')`, [name, image, stockTotal, pricePerDay]
+            VALUES ($1, $2, $3, $4)`, [name, image, stockTotal, pricePerDay]
         );
 
         return res.sendStatus(201);
