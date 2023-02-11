@@ -70,6 +70,43 @@ app.get("/customers/:id", async(req, res) => {
     }
 });
 
+app.get("/rentals", async(req, res) => {
+    try{
+        const rentalList = await connection.query(
+            `
+                SELECT json_build_object(
+                    'id', rentals.id,
+                    'customerId', rentals."customerId",
+                    'gameId', rentals."gameId",
+                    'rentDate', rentals."rentDate",
+                    'daysRented', rentals."daysRented",
+                    'returnDate', rentals."returnDate",
+                    'originalPrice', rentals."originalPrice",
+                    'delayFee', rentals."delayFee",
+                    'customer', json_build_object(
+                        'id', customers.id,
+                        'name', customers.name
+                    ),
+                    'game', json_build_object(
+                        'id', games.id,
+                        'name', games.name
+                    )
+                )
+                FROM rentals
+                JOIN customers
+                    ON rentals."customerId" = customers.id
+                JOIN games
+                    ON rentals."gameId" = games.id
+            `
+        );
+
+        res.status(200).send(rentalList.rows);
+    }
+    catch(error){
+        res.status(500).send(error.message);
+    }
+});
+
 app.post("/games", async(req, res) => {
     const { name, image, stockTotal, pricePerDay } = req.body;
     const newGame = { name, image, stockTotal, pricePerDay };
@@ -81,13 +118,16 @@ app.post("/games", async(req, res) => {
     };
 
     try{
-        const gameName = await connection.query(`SELECT * FROM games WHERE name = ${name}`);
+        const gameName = await connection.query("SELECT * FROM games WHERE name = $1", [name]);
 
-        if(gameName){
+        if(gameName.rows.length !== 0){
             return res.sendStatus(409);
         };
 
-        await connection.query(`INSERT INTO games (name, image, "stockTotal", "pricePerDay") VALUES ('$1', '$2', '$3', '$4')`, [name, image, stockTotal, pricePerDay]);
+        await connection.query(`
+            INSERT INTO games (name, image, "stockTotal", "pricePerDay") 
+            VALUES ('$1', '$2', '$3', '$4')`, [name, image, stockTotal, pricePerDay]
+        );
 
         return res.sendStatus(201);
     }
