@@ -192,7 +192,7 @@ app.post("/rentals", async(req, res) => {
             return res.sendStatus(400);
         };
 
-        if(rentalList.rows.length > searchGame.rows.stockTotal){
+        if(rentalList.rows.length > searchGame.rows[0].stockTotal){
             return res.sendStatus(400);
         };
 
