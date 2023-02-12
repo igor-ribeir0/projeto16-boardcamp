@@ -312,3 +312,32 @@ app.put("/customers/:id", async(req, res) => {
         res.status(500).send(error.message);
     }
 });
+
+app.delete("/rentals/:id", async(req, res) => {
+    const { id } = req.params;
+
+    try{
+        const searchRental = await connection.query(
+            `
+                SELECT * FROM rentals WHERE id = $1
+            `,
+            [id]
+        );
+
+        if(searchRental.rows.length === 0) return res.sendStatus(404);
+
+        if(searchRental.rows[0].returnDate === null) return res.sendStatus(400);
+
+        await connection.query(
+            `
+                DELETE FROM rentals WHERE id = $1
+            `,
+            [id]
+        );
+
+        res.sendStatus(200);
+    }
+    catch(error){
+        res.status(500).send(error.message);
+    }
+});
