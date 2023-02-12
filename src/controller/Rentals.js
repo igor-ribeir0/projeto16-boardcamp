@@ -106,7 +106,7 @@ export async function rentalReturn(req, res){
 
         const gamePrice = searchGame.rows[0].pricePerDay;
         const delay = dayjs(searchRental.rows[0].rentDate).diff(todayDate, 'day');
-        const latePayment = Number(delay) * gamePrice;
+        const latePayment = (Number(delay) * gamePrice) * -1;
 
         if(searchRental.rows[0].returnDate !== null) return res.sendStatus(400);
 
