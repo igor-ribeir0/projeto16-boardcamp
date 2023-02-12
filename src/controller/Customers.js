@@ -68,16 +68,21 @@ export async function customerUpdate(req, res){
     };
 
     try{
-        const customerCpf = await connection.query("SELECT * FROM customers WHERE cpf = $1", [cpf]);
+        const customerCpf = await connection.query(
+            `
+                SELECT * FROM customers WHERE cpf = $1 AND id <> $2
+            `,
+            [cpf, id]
+        );
 
-        if(customerCpf.rows.length !== 0) return res.sendStatus(409);
+        if(customerCpf.rows.length > 0) return res.sendStatus(409);
 
         await connection.query(
 			"UPDATE customers SET name = $1, phone = $2, cpf = $3, birthday = $4 WHERE id = $5",
 			[name, phone, cpf, birthday, id]
 		);
 
-        return res.sendStatus(200);
+        res.sendStatus(200);
     }
     catch(error){
         res.status(500).send(error.message);
