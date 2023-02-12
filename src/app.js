@@ -230,6 +230,58 @@ app.post("/rentals", async(req, res) => {
     }
 });
 
+app.post("/rentals/:id/return", async(req, res) => {
+    const { id } = req.params;
+    const todayDate = dayjs().format("YYYY-MM-DD");
+
+    try{
+        const searchRental = await connection.query(
+            `
+                SELECT * FROM rentals WHERE id = $1
+            `,
+            [id]
+        );
+
+        const searchGame = await connection.query(
+            `
+                SELECT * FROM games WHERE id = $1
+            `,
+            [searchRental.rows[0].gameId]
+        );
+
+        const gamePrice = searchGame.rows[0].pricePerDay;
+        const delay = dayjs(searchRental.rows[0].rentDate).diff(todayDate, 'day');
+        const latePayment = Number(delay) * gamePrice * 100;
+
+        if(searchRental.rows.length === 0) return res.sendStatus(404);
+
+        if(searchRental.rows[0].returnDate !== null) return res.sendStatus(400);
+
+        await connection.query(
+            `
+                UPDATE rentals
+                SET "returnDate" = $1
+                WHERE id = $2
+            `,
+            [dayjs().format("YYYY-MM-DD"), id]
+        );
+
+        await connection.query(
+            `
+                UPDATE rentals
+                SET "delayFee" = $1
+                WHERE id = $2
+            `,
+            [latePayment, id]
+        );
+
+        res.sendStatus(200);
+    }
+    catch(error){
+        res.status(500).send(error.message);
+    }
+});
+
 app.put("/customers/:id", async(req, res) => {
     const { id } = req.params;
     const { name, phone, cpf, birthday } = req.body;
