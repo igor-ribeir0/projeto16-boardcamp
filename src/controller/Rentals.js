@@ -58,7 +58,7 @@ export async function newRental(req, res){
             return res.sendStatus(400);
         };
 
-        if(rentalList.rows.length > Number(searchGame.rows[0].stockTotal)){
+        if(rentalList.rows.length >= Number(searchGame.rows[0].stockTotal)){
             return res.sendStatus(400);
         };
 
