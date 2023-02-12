@@ -68,10 +68,7 @@ export async function customerUpdate(req, res){
     };
 
     try{
-        const customerId = await connection.query("SELECT * FROM customers WHERE id = $1", [id]);
         const customerCpf = await connection.query("SELECT * FROM customers WHERE cpf = $1", [cpf]);
-
-        if(customerId.rows.length === 0) return res.sendStatus(404);
 
         if(customerCpf.rows.length !== 0) return res.sendStatus(409);
 
