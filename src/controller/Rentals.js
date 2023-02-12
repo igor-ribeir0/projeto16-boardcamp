@@ -58,7 +58,7 @@ export async function newRental(req, res){
             return res.sendStatus(400);
         };
 
-        if(rentalList.rows.length > searchGame.rows[0].stockTotal){
+        if(rentalList.rows.length > Number(searchGame.rows[0].stockTotal)){
             return res.sendStatus(400);
         };
 
@@ -84,7 +84,7 @@ export async function newRental(req, res){
                 dayjs().format("YYYY-MM-DD"), 
                 daysRented,
                 null,
-                daysRented * Number(searchGame.rows[0].pricePerDay) * 100,
+                daysRented * Number(searchGame.rows[0].pricePerDay),
                 null
             ]
         );
