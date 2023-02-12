@@ -1,6 +1,5 @@
 import dayjs from "dayjs";
 import { connection } from "../config/dataBase.js";
-import { rentalSchema } from "../schemas/RentalsSchema.js";
 
 export async function rentalsList(req, res){
     try{
@@ -28,13 +27,6 @@ export async function rentalsList(req, res){
 
 export async function newRental(req, res){
     const { customerId, gameId, daysRented } = req.body;
-    const newRental = { customerId, gameId, daysRented };
-    const validation = rentalSchema.validate(newRental, { abortEarly: false });
-
-    if (validation.error) {
-        const errors = validation.error.details.map((detail) => detail.message);
-        return res.status(400).send(errors);
-    };
 
     try{
         const searchCustomer = await connection.query(`SELECT * FROM customers WHERE id = $1`, [customerId]);
@@ -85,7 +77,6 @@ export async function newRental(req, res){
 
 export async function rentalReturn(req, res){
     const { id } = req.params;
-    const todayDate = dayjs().format("YYYY-MM-DD");
 
     try{
         const searchRental = await connection.query(
@@ -98,13 +89,6 @@ export async function rentalReturn(req, res){
         if(searchRental.rows.length === 0) return res.sendStatus(404);
 
         if(searchRental.rows[0].returnDate !== null) return res.sendStatus(400);
-
-        const searchGame = await connection.query(
-            `
-                SELECT * FROM games WHERE id = $1
-            `,
-            [searchRental.rows[0].gameId]
-        );
 
         const ms = new Date().getTime() - new Date(searchRental.rows[0].rentDate).getTime();
         const msToDays = Math.floor(ms / 86400000);

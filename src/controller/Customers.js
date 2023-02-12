@@ -1,5 +1,4 @@
 import { connection } from "../config/dataBase.js";
-import { customerSchema } from "../schemas/CustomersSchema.js";
 
 export async function customersList(req, res){
     try{
@@ -30,15 +29,6 @@ export async function customerById(req, res){
 export async function newCustomer(req, res){
     const { name, phone, cpf, birthday } = req.body;
 
-    const newCustomer = { name, phone, cpf, birthday };
-
-    const validation = customerSchema.validate(newCustomer, { abortEarly: false });
-
-    if (validation.error) {
-        const errors = validation.error.details.map((detail) => detail.message);
-        return res.status(400).send(errors);
-    };
-
     try{
         const customerCpf = await connection.query(`SELECT * FROM customers WHERE cpf = $1`, [cpf]);
 
@@ -58,14 +48,6 @@ export async function newCustomer(req, res){
 export async function customerUpdate(req, res){
     const { id } = req.params;
     const { name, phone, cpf, birthday } = req.body;
-    const customer = { name, phone, cpf, birthday };
-
-    const validation = customerSchema.validate(customer, { abortEarly: false });
-
-    if (validation.error) {
-        const errors = validation.error.details.map((detail) => detail.message);
-        return res.status(400).send(errors);
-    };
 
     try{
         const customerCpf = await connection.query(

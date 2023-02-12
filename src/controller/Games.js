@@ -1,5 +1,4 @@
 import { connection } from "../config/dataBase.js";
-import { newGameSchema } from "../schemas/GamesSchema.js";
 
 export async function gameList(req, res){
     try{
@@ -13,13 +12,6 @@ export async function gameList(req, res){
 
 export async function newGame(req, res){
     const { name, image, stockTotal, pricePerDay } = req.body;
-    const newGame = { name, image, stockTotal, pricePerDay };
-    const validation = newGameSchema.validate(newGame, { abortEarly: false });
-
-    if (validation.error) {
-        const errors = validation.error.details.map((detail) => detail.message);
-        return res.status(400).send(errors);
-    };
 
     try{
         const gameName = await connection.query("SELECT * FROM games WHERE name = $1", [name]);
