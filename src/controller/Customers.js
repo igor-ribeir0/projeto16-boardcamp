@@ -35,8 +35,7 @@ export async function newCustomer(req, res){
     const validation = customerSchema.validate(newCustomer, { abortEarly: false });
 
     if (validation.error) {
-        const errors = validation.error.details.map((detail) => detail.message);
-        return res.status(400).send(errors);
+        return res.sendStatus(400);
     };
 
     try{
