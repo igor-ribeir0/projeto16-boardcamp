@@ -6,29 +6,16 @@ export async function rentalsList(req, res){
     try{
         const rentalList = await connection.query(
             `
-                SELECT json_build_object(
-                    'id', rentals.id,
-                    'customerId', rentals."customerId",
-                    'gameId', rentals."gameId",
-                    'rentDate', rentals."rentDate",
-                    'daysRented', rentals."daysRented",
-                    'returnDate', rentals."returnDate",
-                    'originalPrice', rentals."originalPrice",
-                    'delayFee', rentals."delayFee",
-                    'customer', json_build_object(
-                        'id', customers.id,
-                        'name', customers.name
-                    ),
-                    'game', json_build_object(
-                        'id', games.id,
-                        'name', games.name
-                    )
-                )
-                FROM rentals
-                JOIN customers
-                    ON rentals."customerId" = customers.id
-                JOIN games
-                    ON rentals."gameId" = games.id
+            SELECT
+            rentals.*,
+            json_build_object('id', customers.id, 'name', customers.name) AS customer,
+            json_build_object('id', games.id, 'name', games.name) AS game
+            FROM
+            rentals
+            JOIN customers 
+                ON rentals."customerId" = customers.id
+            JOIN games 
+                ON rentals."gameId" = games.id;
             `
         );
 
