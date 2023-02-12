@@ -97,6 +97,8 @@ export async function rentalReturn(req, res){
 
         if(searchRental.rows.length === 0) return res.sendStatus(404);
 
+        if(searchRental.rows[0].returnDate !== null) return res.sendStatus(400);
+
         const searchGame = await connection.query(
             `
                 SELECT * FROM games WHERE id = $1
@@ -104,11 +106,14 @@ export async function rentalReturn(req, res){
             [searchRental.rows[0].gameId]
         );
 
-        const gamePrice = searchGame.rows[0].pricePerDay;
-        const delay = dayjs(searchRental.rows[0].rentDate).diff(todayDate, 'day');
-        const latePayment = (Number(delay) * gamePrice) * -1;
+        const ms = new Date().getTime() - new Date(searchRental.rows[0].rentDate).getTime();
+        const msToDays = Math.floor(ms / 86400000);
+        let latePayment = 0;
 
-        if(searchRental.rows[0].returnDate !== null) return res.sendStatus(400);
+        if (msToDays > searchRental.rows[0].daysRented) {
+            const addicionalDays = msToDays - searchRental.rows[0].daysRented;
+            latePayment = addicionalDays * (searchRental.rows[0].originalPrice / searchRental.rows[0].daysRented);
+        };
 
         await connection.query(
             `
